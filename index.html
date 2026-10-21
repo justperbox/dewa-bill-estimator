@@ -84,8 +84,10 @@
         </div>
         <div class="total"><div class="kicker">Projected full-cycle bill</div><div class="amount"><small>AED</small> <span id="grandTotal">—</span></div><div class="projection-note" id="projectionNote">Based on your current daily usage rate.</div><div class="usage-cards"><div class="usage"><span>Projected electricity</span><strong id="projectedE">—</strong></div><div class="usage"><span>Projected water</span><strong id="projectedW">—</strong></div></div></div>
         <div class="breakdown">
-          <div class="row"><div>Electricity<span>Slab tariff + fuel surcharge</span></div><b id="electricityCost">—</b></div>
-          <div class="row"><div>Water<span>Slab tariff + fuel surcharge</span></div><b id="waterCost">—</b></div>
+          <div class="row"><div>Electricity consumption<span>Slab tariff</span></div><b id="electricityTariffCost">—</b></div>
+          <div class="row"><div>Electricity fuel surcharge<span id="electricityFuelCaption">Applied per kWh</span></div><b id="electricityFuelCost">—</b></div>
+          <div class="row"><div>Water consumption<span>Slab tariff</span></div><b id="waterTariffCost">—</b></div>
+          <div class="row"><div>Water fuel surcharge<span id="waterFuelCaption">Applied per m³</span></div><b id="waterFuelCost">—</b></div>
           <div class="row"><div>Housing fee<span id="housingCaption">5% of rent ÷ 12</span></div><b id="housingCost">—</b></div>
           <div class="row"><div>Service &amp; other fees</div><b id="feeCost">—</b></div>
           <div class="row"><div>VAT<span>Excludes housing fee</span></div><b id="vatCost">—</b></div>
@@ -107,6 +109,7 @@
       const dayNumber = d => Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/DAY;
       const inclusiveDays = (a,b) => Math.round(dayNumber(b)-dayNumber(a))+1;
       const money = n => new Intl.NumberFormat('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0);
+      const round2 = value => Math.round((value+Number.EPSILON)*100)/100;
       const shortDate = d => new Intl.DateTimeFormat('en-AE',{day:'numeric',month:'short',year:'numeric'}).format(d);
       const n = id => Math.max(0, Number($(id).value)||0);
       const slab = (usage, breaks, rates) => {
@@ -134,27 +137,33 @@
         $('averageCaption').textContent=averageDays?`Based on ${averageDays} inclusive day${averageDays===1?'':'s'}`:'Available when the cycle starts';
         const projectedE=n('electricity')*factor, projectedW=n('water')*factor;
         const cycleShare=totalDays?elapsed/totalDays:0;
-        const mtdElectricity=before?0:slab(n('electricity'),[2000,4000,6000],[n('e1'),n('e2'),n('e3'),n('e4')])+n('electricity')*n('eFuel');
-        const mtdWater=before?0:slab(n('water'),[27,54],[n('w1'),n('w2'),n('w3')])+n('water')*n('wFuel');
-        const eTariff=slab(projectedE,[2000,4000,6000],[n('e1'),n('e2'),n('e3'),n('e4')]);
-        const wTariff=slab(projectedW,[27,54],[n('w1'),n('w2'),n('w3')]);
-        const electricity=eTariff+projectedE*n('eFuel');
-        const water=wTariff+projectedW*n('wFuel');
-        const housing=n('rent')*(n('housing')/100)/12;
-        const fees=n('service')+n('other');
-        const vat=(electricity+water+fees)*(n('vat')/100);
-        const total=electricity+water+housing+fees+vat;
-        const mtdHousing=housing*cycleShare;
-        const mtdFees=fees*cycleShare;
-        const mtdVat=(mtdElectricity+mtdWater+mtdFees)*(n('vat')/100);
-        const mtdTotal=mtdElectricity+mtdWater+mtdHousing+mtdFees+mtdVat;
+        const mtdElectricity=before?0:round2(slab(n('electricity'),[2000,4000,6000],[n('e1'),n('e2'),n('e3'),n('e4')]))+round2(n('electricity')*n('eFuel'));
+        const mtdWater=before?0:round2(slab(n('water'),[27,54],[n('w1'),n('w2'),n('w3')]))+round2(n('water')*n('wFuel'));
+        const eTariff=round2(slab(projectedE,[2000,4000,6000],[n('e1'),n('e2'),n('e3'),n('e4')]));
+        const wTariff=round2(slab(projectedW,[27,54],[n('w1'),n('w2'),n('w3')]));
+        const electricityFuel=round2(projectedE*n('eFuel'));
+        const waterFuel=round2(projectedW*n('wFuel'));
+        const electricity=eTariff+electricityFuel;
+        const water=wTariff+waterFuel;
+        const housing=round2(n('rent')*(n('housing')/100)/12);
+        const fees=round2(n('service')+n('other'));
+        const vat=round2((electricity+water+fees)*(n('vat')/100));
+        const total=round2(electricity+water+housing+fees+vat);
+        const mtdHousing=round2(housing*cycleShare);
+        const mtdFees=round2(fees*cycleShare);
+        const mtdVat=round2((mtdElectricity+mtdWater+mtdFees)*(n('vat')/100));
+        const mtdTotal=round2(mtdElectricity+mtdWater+mtdHousing+mtdFees+mtdVat);
         $('mtdTotal').textContent=money(mtdTotal);
         $('mtdNote').textContent=before?'Cycle has not started':`Through ${shortDate(after?end:today)} · fixed fees prorated ${Math.round(cycleShare*100)}%`;
         $('grandTotal').textContent=money(total);
         $('projectedE').textContent=`${projectedE.toFixed(1)} kWh`;
         $('projectedW').textContent=`${projectedW.toFixed(2)} m³`;
-        $('electricityCost').textContent=`AED ${money(electricity)}`;
-        $('waterCost').textContent=`AED ${money(water)}`;
+        $('electricityTariffCost').textContent=`AED ${money(eTariff)}`;
+        $('electricityFuelCost').textContent=`AED ${money(electricityFuel)}`;
+        $('waterTariffCost').textContent=`AED ${money(wTariff)}`;
+        $('waterFuelCost').textContent=`AED ${money(waterFuel)}`;
+        $('electricityFuelCaption').textContent=`AED ${n('eFuel').toFixed(3)} × projected kWh`;
+        $('waterFuelCaption').textContent=`AED ${n('wFuel').toFixed(2)} × projected m³`;
         $('housingCost').textContent=`AED ${money(housing)}`;
         $('feeCost').textContent=`AED ${money(fees)}`;
         $('vatCost').textContent=`AED ${money(vat)}`;
