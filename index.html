@@ -73,7 +73,6 @@
             <div class="field"><label for="vat">VAT on DEWA charges (%)</label><div class="input"><input id="vat" type="number" min="0" step="0.1" value="5"></div></div>
             <div class="field"><label for="eMeter">Electricity meter service charge</label><div class="input"><input id="eMeter" type="number" min="0" step="0.01" value="6"></div></div>
             <div class="field"><label for="wMeter">Water meter service charge</label><div class="input"><input id="wMeter" type="number" min="0" step="0.01" value="5"></div></div>
-            <div class="field"><label for="other">Other monthly fees (AED)</label><div class="input"><input id="other" type="number" min="0" step="1" value="0"></div></div>
             <div class="field full"><button class="reset" type="button" id="reset">Reset all defaults</button></div>
           </div>
         </details>
@@ -87,23 +86,23 @@
         <div class="total"><div class="kicker">Projected full-cycle bill</div><div class="amount"><small>AED</small> <span id="grandTotal">—</span></div><div class="projection-note" id="projectionNote">Based on your current daily usage rate.</div><div class="usage-cards"><div class="usage"><span>Projected electricity</span><strong id="projectedE">—</strong></div><div class="usage"><span>Projected water</span><strong id="projectedW">—</strong></div></div></div>
         <div class="bill-groups">
           <section class="bill-section">
-            <div class="bill-head"><h3>Electricity</h3><b id="electricityTotal">—</b></div>
+            <div class="bill-head"><h3>Electricity</h3></div>
             <div class="bill-rows">
               <div class="bill-row"><span>Consumption<small>Slab tariff</small></span><b id="electricityTariffCost">—</b></div>
               <div class="bill-row"><span>Fuel surcharge<small id="electricityFuelCaption">Applied per kWh</small></span><b id="electricityFuelCost">—</b></div>
               <div class="bill-row"><span>Meter service charge</span><b id="electricityMeterCost">—</b></div>
-              <div class="bill-row subtotal"><span>Subtotal</span><b id="electricitySubtotal">—</b></div>
               <div class="bill-row"><span>VAT<small id="electricityVatCaption">Rounded separately</small></span><b id="electricityVatCost">—</b></div>
+              <div class="bill-row subtotal"><span>Subtotal</span><b id="electricitySubtotal">—</b></div>
             </div>
           </section>
           <section class="bill-section">
-            <div class="bill-head"><h3>Water</h3><b id="waterTotal">—</b></div>
+            <div class="bill-head"><h3>Water</h3></div>
             <div class="bill-rows">
               <div class="bill-row"><span>Consumption<small>Slab tariff</small></span><b id="waterTariffCost">—</b></div>
               <div class="bill-row"><span>Fuel surcharge<small id="waterFuelCaption">Applied per m³</small></span><b id="waterFuelCost">—</b></div>
               <div class="bill-row"><span>Meter service charge</span><b id="waterMeterCost">—</b></div>
-              <div class="bill-row subtotal"><span>Subtotal</span><b id="waterSubtotal">—</b></div>
               <div class="bill-row"><span>VAT<small id="waterVatCaption">Rounded separately</small></span><b id="waterVatCost">—</b></div>
+              <div class="bill-row subtotal"><span>Subtotal</span><b id="waterSubtotal">—</b></div>
             </div>
           </section>
           <section class="bill-section">
@@ -111,7 +110,6 @@
             <div class="bill-rows">
               <div class="bill-row"><span>Housing fee<small id="housingCaption">5% of rent ÷ 12</small></span><b id="housingCost">—</b></div>
               <div class="bill-row"><span>Sewerage fee<small id="sewerageCaption">VAT-exempt municipal fee</small></span><b id="sewerageCost">—</b></div>
-              <div class="bill-row" id="otherFeeRow" hidden><span>Other monthly fees</span><b id="otherFeeCost">—</b></div>
             </div>
           </section>
         </div>
@@ -146,12 +144,12 @@
       const waterTotal = round2(waterSubtotal + waterVat);
       const housing = round2(v.rent * v.housing / 100 / 12);
       const sewerage = round2(v.water * v.sewerage);
-      const municipalityTotal = round2(housing + sewerage + v.other);
+      const municipalityTotal = round2(housing + sewerage);
       return {electricityBase, electricityFuel, electricitySubtotal, electricityVat, electricityTotal, waterBase, waterFuel, waterSubtotal, waterVat, waterTotal, housing, sewerage, municipalityTotal, grandTotal: round2(electricityTotal + waterTotal + municipalityTotal)};
     }
     // CORE_END
     (() => {
-      const ids = ['startDate','endDate','electricity','water','rent','e1','e2','e3','e4','w1','w2','w3','eFuel','wFuel','sewerage','housing','vat','eMeter','wMeter','other'];
+      const ids = ['startDate','endDate','electricity','water','rent','e1','e2','e3','e4','w1','w2','w3','eFuel','wFuel','sewerage','housing','vat','eMeter','wMeter'];
       const $ = id => document.getElementById(id);
       const defaults = Object.fromEntries(ids.map(id => [id, $(id).value]));
       const DAY = 86400000;
@@ -162,7 +160,7 @@
       const money = n => new Intl.NumberFormat('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(n)?n:0);
       const shortDate = d => new Intl.DateTimeFormat('en-AE',{day:'numeric',month:'short',year:'numeric'}).format(d);
       const n = id => Math.max(0, Number($(id).value)||0);
-      const valuesFor = (electricity, water) => ({electricity, water, rent:n('rent'), e1:n('e1'), e2:n('e2'), e3:n('e3'), e4:n('e4'), w1:n('w1'), w2:n('w2'), w3:n('w3'), eFuel:n('eFuel'), wFuel:n('wFuel'), sewerage:n('sewerage'), housing:n('housing'), vat:n('vat'), eMeter:n('eMeter'), wMeter:n('wMeter'), other:n('other')});
+      const valuesFor = (electricity, water) => ({electricity, water, rent:n('rent'), e1:n('e1'), e2:n('e2'), e3:n('e3'), e4:n('e4'), w1:n('w1'), w2:n('w2'), w3:n('w3'), eFuel:n('eFuel'), wFuel:n('wFuel'), sewerage:n('sewerage'), housing:n('housing'), vat:n('vat'), eMeter:n('eMeter'), wMeter:n('wMeter')});
       const setMoney = (id, value) => { $(id).textContent = `AED ${money(value)}`; };
       function calculate(today = localDate(new Date())) {
         const start=parseDate($('startDate').value), end=parseDate($('endDate').value);
@@ -195,7 +193,7 @@
           const mtdWFuel=round2(n('water')*n('wFuel'));
           const mtdWSubtotal=round2(mtdWBase+mtdWFuel+round2(n('wMeter')*cycleShare));
           const mtdWTotal=round2(mtdWSubtotal+round2(mtdWSubtotal*n('vat')/100));
-          const mtdMunicipality=round2(round2(result.housing*cycleShare)+round2(n('water')*n('sewerage'))+round2(n('other')*cycleShare));
+          const mtdMunicipality=round2(round2(result.housing*cycleShare)+round2(n('water')*n('sewerage')));
           mtdTotal=round2(mtdETotal+mtdWTotal+mtdMunicipality);
         }
         $('mtdTotal').textContent=money(mtdTotal);
@@ -203,14 +201,13 @@
         $('grandTotal').textContent=money(result.grandTotal);
         $('projectedE').textContent=`${projectedE.toFixed(1)} kWh`;
         $('projectedW').textContent=`${projectedW.toFixed(3)} m³`;
-        [['electricityTariffCost',result.electricityBase],['electricityFuelCost',result.electricityFuel],['electricityMeterCost',n('eMeter')],['electricitySubtotal',result.electricitySubtotal],['electricityVatCost',result.electricityVat],['electricityTotal',result.electricityTotal],['waterTariffCost',result.waterBase],['waterFuelCost',result.waterFuel],['waterMeterCost',n('wMeter')],['waterSubtotal',result.waterSubtotal],['waterVatCost',result.waterVat],['waterTotal',result.waterTotal],['housingCost',result.housing],['sewerageCost',result.sewerage],['otherFeeCost',n('other')],['municipalityTotal',result.municipalityTotal]].forEach(([id,value])=>setMoney(id,value));
+        [['electricityTariffCost',result.electricityBase],['electricityFuelCost',result.electricityFuel],['electricityMeterCost',n('eMeter')],['electricitySubtotal',result.electricitySubtotal],['electricityVatCost',result.electricityVat],['waterTariffCost',result.waterBase],['waterFuelCost',result.waterFuel],['waterMeterCost',n('wMeter')],['waterSubtotal',result.waterSubtotal],['waterVatCost',result.waterVat],['housingCost',result.housing],['sewerageCost',result.sewerage],['municipalityTotal',result.municipalityTotal]].forEach(([id,value])=>setMoney(id,value));
         $('electricityFuelCaption').textContent=`AED ${n('eFuel').toFixed(3)} × projected kWh`;
         $('waterFuelCaption').textContent=`AED ${n('wFuel').toFixed(2)} × projected m³`;
         $('electricityVatCaption').textContent=`${n('vat')}% of electricity subtotal, rounded`;
         $('waterVatCaption').textContent=`${n('vat')}% of water subtotal, rounded`;
         $('sewerageCaption').textContent=`AED ${n('sewerage').toFixed(2)} × projected m³ · VAT exempt`;
         $('housingCaption').textContent=`${n('housing')}% of rent ÷ 12`;
-        $('otherFeeRow').hidden=n('other')===0;
         $('projectionNote').textContent=active?`Projected from ${elapsed} inclusive day${elapsed===1?'':'s'} of usage.`:before?'Cycle has not started; showing entered usage without extrapolation.':'Cycle complete; showing entered full-cycle usage.';
       }
       ids.forEach(id=>$(id).addEventListener('input',()=>calculate()));
