@@ -201,11 +201,11 @@
         $('grandTotal').textContent=money(result.grandTotal);
         $('projectedE').textContent=`${projectedE.toFixed(1)} kWh`;
         $('projectedW').textContent=`${projectedW.toFixed(3)} m³`;
-        [['electricityTariffCost',result.electricityBase],['electricityFuelCost',result.electricityFuel],['electricityMeterCost',n('eMeter')],['electricitySubtotal',result.electricitySubtotal],['electricityVatCost',result.electricityVat],['waterTariffCost',result.waterBase],['waterFuelCost',result.waterFuel],['waterMeterCost',n('wMeter')],['waterSubtotal',result.waterSubtotal],['waterVatCost',result.waterVat],['housingCost',result.housing],['sewerageCost',result.sewerage],['municipalityTotal',result.municipalityTotal]].forEach(([id,value])=>setMoney(id,value));
+        [['electricityTariffCost',result.electricityBase],['electricityFuelCost',result.electricityFuel],['electricityMeterCost',n('eMeter')],['electricitySubtotal',result.electricityTotal],['electricityVatCost',result.electricityVat],['waterTariffCost',result.waterBase],['waterFuelCost',result.waterFuel],['waterMeterCost',n('wMeter')],['waterSubtotal',result.waterTotal],['waterVatCost',result.waterVat],['housingCost',result.housing],['sewerageCost',result.sewerage],['municipalityTotal',result.municipalityTotal]].forEach(([id,value])=>setMoney(id,value));
         $('electricityFuelCaption').textContent=`AED ${n('eFuel').toFixed(3)} × projected kWh`;
         $('waterFuelCaption').textContent=`AED ${n('wFuel').toFixed(2)} × projected m³`;
-        $('electricityVatCaption').textContent=`${n('vat')}% of electricity subtotal, rounded`;
-        $('waterVatCaption').textContent=`${n('vat')}% of water subtotal, rounded`;
+        $('electricityVatCaption').textContent=`${n('vat')}% of charges before VAT, rounded`;
+        $('waterVatCaption').textContent=`${n('vat')}% of charges before VAT, rounded`;
         $('sewerageCaption').textContent=`AED ${n('sewerage').toFixed(2)} × projected m³ · VAT exempt`;
         $('housingCaption').textContent=`${n('housing')}% of rent ÷ 12`;
         $('projectionNote').textContent=active?`Projected from ${elapsed} inclusive day${elapsed===1?'':'s'} of usage.`:before?'Cycle has not started; showing entered usage without extrapolation.':'Cycle complete; showing entered full-cycle usage.';
